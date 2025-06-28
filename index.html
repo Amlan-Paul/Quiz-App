@@ -1,0 +1,2099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Quiz App</title>
+    <!-- Fontawesome CDN Link -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
+    <!-- Google Icon -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Boxicons CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css" />
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Baloo+Da+2:wght@400..800&family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@100..900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
+    <!--SweetAlert2 cdn-->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!--Jeson cdn-->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Chart.js for pie chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- tailwindcss cdn -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+    /* Add your CSS styling here */
+    @import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Exo:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+    body {
+      font-family: "Roboto", sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .subjects-list .checkbox {
+      width: 18px;
+      height: 18px;
+      font-size: 1rem;
+    }
+    .subjects-list label {
+      font-size: 1.2rem;
+    }
+    .result {
+      font-size: 1rem;
+      font-family: "Exo", sans-serif;
+      font-weight: 500;
+      color: #333;
+    }
+    #quiz-options {
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 10px;
+    }
+    #quiz-options h3 {
+      font-size: 1.1rem;
+      color: #007bff;
+      margin: 10px 0;
+    }
+    #quiz-options input[type="radio"] {
+      margin-right: 10px;
+    }
+    #quiz-options input[type="number"] {
+      width: 60%;
+    }
+    #chart-container {
+      width: 100%;
+      max-width: 300px;
+      margin: 20px auto;
+      height: 300px;
+    }
+    .percentage {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #007bff;
+      margin: 15px 0;
+      text-align: center;
+    }
+    button:disabled {
+      background-color: #87baf4;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .loading-spinner {
+      display: inline-block;
+      width: 1.5rem;
+      height: 1.5rem;
+      border: 4px solid rgba(0, 123, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #e7d9d9;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      margin-top: 12px;
+    }
+    @media (min-width: 1024px) {
+      .options {
+        grid-template-columns: 1fr 1fr; /* 2 columns for large screens */
+      }
+    }
+    .option {
+      background: #f0f8ff;
+      border: 1px solid #84c5fe;
+      border-radius: 5px;
+      padding: 10px 15px;
+      font-size: 1rem;
+      margin-bottom: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+    }
+    .option:hover {
+      color: #004085;
+      background-color: #cce5ff;
+      border: 1px solid #b8daff;
+    }
+    .question-review {
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      background-color: #f8f9fa;
+      text-align: left;
+    }
+    .question-review .question-text {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .question-review .options {
+      margin-left: 20px;
+    }
+    .question-review .option {
+      padding: 5px;
+      margin: 5px 0;
+      display: block;
+      border-radius: 5px;
+    }
+    .option.correct {
+      background-color: rgba(76, 175, 80, 0.2);
+      border: 1px solid #4CAF50;
+    }
+    .option.incorrect {
+      background-color: rgba(244, 67, 54, 0.2);
+      border: 1px solid #F44336;
+    }
+    .option.selected {
+      font-weight: 500;
+    }
+    .option.unselected {
+      opacity: 0.7;
+    }
+    .answer-status {
+      padding: 5px 10px;
+      border-radius: 15px;
+      display: inline-block;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+    .answer-status.correct {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .answer-status.incorrect {
+      background-color: #F44336;
+      color: white;
+    }
+    .answer-status.skipped {
+      background-color: #FFC107;
+      color: black;
+    }
+    .question-points {
+      font-size: 0.85rem;
+      font-weight: normal;
+      margin-left: 10px;
+      border-radius: 3px;
+      padding: 2px 6px;
+      display: inline-block;
+      background-color: #f0f0f0;
+    }
+    .points-summary {
+      background-color: #e9f7fe;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      text-align: center;
+      border: 1px solid #b8daff;
+    }
+    .total-points {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #007bff;
+    }
+    .scoring-info {
+      background-color: #f8f9fa;
+      padding: 15px;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      text-align: center;
+      border: 1px solid #dee2e6;
+    }
+    .scoring-info h3 {
+      font-size: 1.1rem;
+      color: #007bff;
+      margin-bottom: 10px;
+    }
+    .scoring-info p {
+      margin: 5px 0;
+    }
+    .subject-tag {
+      display: inline-flex;
+      align-items: center;
+      background-color: #007bff;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      margin: 5px;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .subject-tag i {
+      margin-left: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .subject-tag i:hover {
+      opacity: 1;
+    }
+    .timer-progress-container {
+      width: 100%;
+      height: 8px;
+      background-color: #e0e0e0;
+      border-radius: 4px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    .timer-progress {
+      height: 100%;
+      width: 100%;
+      background-color: #007bff;
+      border-radius: 4px;
+      transition: width 1s linear;
+    }
+    .timer-progress.warning {
+      background-color: #e8c00d;
+    }
+    .timer-progress.danger {
+      background-color: #dc3545;
+    }
+    #question-image-container {
+      display: none;           
+      margin: 1rem auto;
+      max-width: 100%;
+      text-align: center;
+    }
+    .question-image {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    </style>
+</head>
+<body>
+  <div class="container max-w-full sm:max-w-[80%] m-[10px] p-[20px] bg-white shadow-2xl rounded-3xl text-center">
+    <div class="flex flex-col sm:flex-row gap-5 justify-around items-center">
+      <div id="quiz-session" style="display:none;">
+        <img class="w-[380px]" src="./images/quiz-session.png" alt="">
+      </div>
+      
+      <div id="countdown-page" class="w-full max-w-xl mx-auto p-6 rounded-2xl shadow-lg bg-gradient-to-br from-[#e0f7fa] to-[#f1f8e9] hidden">
+        <h2 class="text-4xl text-[#007bff] font-[Audiowide] text-center mb-4 animate-pulse">⏳ Quiz Will Start Soon</h2>
+        <div id="countdown-timer" class="flex justify-center gap-4 text-white text-3xl font-bold font-[Audiowide]">
+          <!-- Timer boxes will be injected here -->
+        </div>
+        <p class="mt-6 text-lg text-center text-gray-700">
+          The quiz will be available on the date and time specified by the administrator.
+        </p>
+      </div>
+      
+      <div id="quiz-end-page" class="w-full max-w-xl mx-auto p-6 rounded-2xl shadow-lg bg-gradient-to-br from-[#e0f7fa] to-[#f1f8e9] hidden">
+        <h2 class="text-4xl text-[#007bff] font-[Audiowide] animate-pulse">⏳ Quiz Session Ended</h2>
+        <div class="quiz-status text-2xl text-red-500 font-semibold mt-5">The quiz is no longer available.</div>
+        <p class="mt-6 text-lg text-center text-gray-700">
+          The quiz session has ended. Please contact your administrator for more information.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-5 justify-around items-center">
+      <div id="quiz-start" class="hidden">
+        <img class="w-[380px]" src="./images/quiz-start.png" alt="">
+      </div>
+      
+      <div id="quiz-end-countdown" class="w-full max-w-xl mx-auto p-6 rounded-2xl shadow-lg bg-gradient-to-br from-[#e0f7fa] to-[#f1f8e9] hidden">
+        <h2 class="text-4xl text-[#007bff] font-[Audiowide] text-center mb-4 animate-pulse">⏳ Quiz Ending Soon!</h2>
+        
+        <div id="end-countdown-timer" class="flex justify-center gap-4 text-white text-3xl font-bold font-[Audiowide]">
+          <!-- Timer boxes will be injected here -->
+        </div>
+        
+        <p class="mt-6 text-lg text-center text-gray-700">
+          Please complete your quiz before the countdown ends.
+        </p>
+      </div>
+    </div>
+    
+    <div id="login-page" class="flex flex-col items-center w-full max-w-md mx-auto mt-8 p-6 rounded-xl shadow-lg bg-gradient-to-br from-sky-100 via-cyan-100 to-emerald-100" style="display: none;">
+      <h2 class="text-3xl text-blue-600 font-[Audiowide] mb-6">Quiz Login</h2>
+    
+      <input type="number" id="login-id" 
+             class="p-3 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 w-full mb-2" 
+             placeholder="ID" required>
+      <div class="error-message hidden text-base text-red-600 mb-2" id="id-error">ID is required</div>
+    
+      <div class="relative w-full">
+        <input type="password" id="login-password" 
+               class="p-3 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 w-full" 
+               placeholder="Password" required>
+        <i class="bx bx-hide show-hide absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"></i>
+      </div>
+      <div class="error-message hidden text-base text-red-600 mt-1 mb-4" id="password-error">Password is required</div>
+    
+      <button id="login-button" onclick="login()"
+              class="cursor-pointer w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300 mt-2">
+        Login
+      </button>
+    </div>
+
+    <div id="rules-page" class="hidden p-2">
+      <div class="p-8 mt-8 rounded-lg shadow-xl bg-gradient-to-br from-[#fff3e0] to-[#fce4ec]">
+        <h2 class="text-3xl text-[#007bff] font-[Audiowide] text-center mb-6">Quiz Rules</h2>
+    
+        <ol id="rules-list" class="text-base text-left font-[Tiro Bangla] font-medium px-5 list-decimal space-y-3">
+          <li class="py-2"><p class="col-span-full text-center text-gray-500">Loading rules...</p></li>
+        </ol>
+    
+        <div class="mt-8 flex justify-between">
+          <button 
+            class="cursor-pointer bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-200"
+            onclick="backToLogin()">
+            Back
+          </button>
+          <button 
+            class="cursor-pointer bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-200"
+            onclick="goToSubjects()">
+            Continue
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="subjects-page" class="p-8 mt-8 rounded-lg shadow-xl bg-gradient-to-br from-blue-100 via-white to-blue-200" style="display:none;">
+      <h2 class="text-3xl text-[#007bff] font-[Audiowide] text-center mb-6">Select Subjects</h2>
+    
+      <!-- Subjects Container -->
+      <div class="max-h-[300px] my-4 p-3 border-2 border-gray-300 rounded-lg">
+        <div id="subjects-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          <p class="col-span-full text-center text-gray-500">Loading...</p> <!-- Subject items will be added here -->
+        </div>
+      </div>
+    
+      <!-- Selected Subjects Container -->
+      <div id="selected-subjects" class="my-4 p-3 border border-gray-300 rounded-lg bg-blue-100 min-h-[40px] flex flex-wrap items-center empty:hidden"></div>
+    
+      <div id="quiz-options" style="display:none;">
+        <div id="question-type-container" style="display:none;">
+          <h3 class="text-lg font-semibold">Question Type</h3>
+    
+          <!-- Question Type Options -->
+          <div class="grid grid-cols-2 gap-3 sm:flex justify-between my-4 px-2">
+            <!-- All -->
+            <div class="flex-1 mx-1 text-center">
+              <input type="radio" id="type-all" name="questionType" value="All" checked class="hidden peer">
+              <label for="type-all" class="flex flex-col items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer transition-all peer-checked:border-[#007bff] peer-checked:bg-blue-100 peer-checked:text-[#007bff]">
+                <i class="fas fa-layer-group text-2xl mb-2 peer-checked:text-[#007bff]"></i>
+                <span class="font-medium peer-checked:text-[#007bff]">All <span id="count-all" class="text-sm font-normal text-gray-600">(0)</span></span>
+              </label>
+            </div>
+
+            <!-- Easy -->
+            <div class="flex-1 mx-1 text-center">
+              <input type="radio" id="type-easy" name="questionType" value="Easy" class="hidden peer">
+              <label for="type-easy" class="flex flex-col items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer transition-all peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-600">
+                <i class="fas fa-smile text-2xl mb-2 peer-checked:text-green-500"></i>
+                <span class="font-medium peer-checked:text-green-500">Easy <span id="count-easy" class="text-sm font-normal text-gray-600">(0)</span></span>
+              </label>
+            </div>
+
+            <!-- Medium -->
+            <div class="flex-1 mx-1 text-center">
+              <input type="radio" id="type-medium" name="questionType" value="Medium" class="hidden peer">
+              <label for="type-medium" class="flex flex-col items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer transition-all peer-checked:border-yellow-400 peer-checked:bg-yellow-50 peer-checked:text-yellow-600">
+                <i class="fas fa-meh text-2xl mb-2 peer-checked:text-yellow-400"></i>
+                <span class="font-medium peer-checked:text-yellow-400">Medium <span id="count-medium" class="text-sm font-normal text-gray-600">(0)</span></span>
+              </label>
+            </div>
+
+            <!-- Hard -->
+            <div class="flex-1 mx-1 text-center">
+              <input type="radio" id="type-hard" name="questionType" value="Hard" class="hidden peer">
+              <label for="type-hard" class="flex flex-col items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer transition-all peer-checked:border-red-500 peer-checked:bg-red-50 peer-checked:text-red-600">
+                <i class="fas fa-dizzy text-2xl mb-2 peer-checked:text-red-500"></i>
+                <span class="font-medium peer-checked:text-red-500">Hard <span id="count-hard" class="text-sm font-normal text-gray-600">(0)</span></span>
+              </label>
+            </div>
+          </div>
+        </div>
+    
+        <!-- Question and Timer Container -->
+        <div id="question-timer-wrapper" class="flex flex-col md:flex-row gap-4">
+          <!-- Number of Questions -->
+          <div id="question-number-container" class="flex-1" style="display: none;">
+            <h3 class="text-lg font-semibold">Number of Questions</h3>
+            <input type="number" id="question-number"
+              class="w-full mt-2 p-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+              placeholder="Enter number of questions" min="1">
+          </div>
+
+          <!-- Timer Input -->
+          <div id="timer-choice-container" class="flex-1" style="display: none;">
+            <h3 class="text-lg font-semibold md:mt-0 mt-4">Timer (Seconds)</h3>
+            <input type="number" id="timer-choice"
+              class="w-full mt-2 p-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+              placeholder="Enter time per question (seconds)" min="10">
+          </div>
+        </div>
+
+      </div>
+    
+      <!-- Action Buttons -->
+      <div class="mt-6 flex justify-between">
+        <button class="cursor-pointer bg-gray-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-600" onclick="backToRules()">Back</button>
+        <button class="cursor-pointer bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-600" id="start-quiz-button" onclick="startQuiz()">Start</button>
+      </div>
+    </div>
+
+    <div id="quiz-page" class="hidden mt-3">
+      <div id="question-numbers" class="float-left text-base font-medium mt-4"></div>
+    
+      <div class="text-base w-[155px] h-[45px] float-right text-[#004085] font-medium bg-[#cce5ff] border border-[#b8daff] px-2 rounded flex items-center justify-between">
+        <div class="time-left font-bold">Time Left</div>
+        <div id="timer" class="text-base w-[60px] h-[30px] font-medium text-white rounded text-center leading-[30px] bg-[#343a40] border border-[#343a40] select-none"></div>
+      </div>
+    
+      <div class="timer-progress-container">
+        <div id="timer-progress" class="timer-progress"></div>
+      </div>
+    
+      <br><br><br>
+    
+      <div id="question-text" class="text-base font-bold my-5"></div>
+    
+      <div id="question-image-container" class="question-image-container hidden">
+        <img id="question-image" class="question-image" src="" alt="Question Image">
+      </div>
+    
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <label class="bg-[#f0f8ff] border border-[#84c5fe] rounded px-4 py-2.5 text-base cursor-pointer transition-all flex items-center hover:text-[#004085] hover:bg-[#cce5ff] hover:border-[#b8daff]">
+          <input type="radio" name="option" value="0" id="option1"> 
+          <span id="option1-text" class="ml-2">Option 1</span>
+        </label>
+      
+        <label class="bg-[#f0f8ff] border border-[#84c5fe] rounded px-4 py-2.5 text-base cursor-pointer transition-all flex items-center hover:text-[#004085] hover:bg-[#cce5ff] hover:border-[#b8daff]">
+          <input type="radio" name="option" value="1" id="option2"> 
+          <span id="option2-text" class="ml-2">Option 2</span>
+        </label>
+      
+        <label class="bg-[#f0f8ff] border border-[#84c5fe] rounded px-4 py-2.5 text-base cursor-pointer transition-all flex items-center hover:text-[#004085] hover:bg-[#cce5ff] hover:border-[#b8daff]">
+          <input type="radio" name="option" value="2" id="option3"> 
+          <span id="option3-text" class="ml-2">Option 3</span>
+        </label>
+      
+        <label class="bg-[#f0f8ff] border border-[#84c5fe] rounded px-4 py-2.5 text-base cursor-pointer transition-all flex items-center hover:text-[#004085] hover:bg-[#cce5ff] hover:border-[#b8daff]">
+          <input type="radio" name="option" value="3" id="option4"> 
+          <span id="option4-text" class="ml-2">Option 4</span>
+        </label>
+      </div>      
+    
+      <button id="clear-question-btn" onclick="clearQuestion()" class="mx-auto mt-2 px-3 py-1.5 bg-[#f8d7da] text-[#721c24] border border-[#f5c6cb] rounded text-sm cursor-pointer transition hover:bg-[#f1b0b7] hover:border-[#e4808a] hidden">
+        Clear Selection
+      </button>
+    
+      <br><br><br><br>
+    
+      <div id="button-container" class="absolute left-1/2 transform -translate-x-1/2 -translate-y-[85%] flex gap-2 min-w-[280px] justify-center">
+        <button id="prev-button" onclick="prevQuestion()" class="cursor-pointer px-5 py-2 text-sm text-white font-semibold bg-blue-600 rounded-lg hover:bg-blue-800 flex items-center gap-2" style="display: none;">
+          <i class="fas fa-arrow-left"></i> Previous
+        </button>
+      
+        <button id="skip-button" onclick="skipQuestion()" class="cursor-pointer px-5 py-2 text-sm text-white font-semibold bg-red-600 rounded-lg hover:bg-red-800 flex items-center gap-2" style="display: none;">
+          <i class="fas fa-forward"></i> Skip
+        </button>
+      
+        <button id="next-button" onclick="nextQuestion()" class="cursor-pointer px-5 py-2 text-sm text-white font-semibold bg-purple-600 rounded-lg hover:bg-purple-800 flex items-center gap-2">
+          <i class="fas fa-arrow-right"></i> Next
+        </button>
+      
+        <button id="submit-button" onclick="submitQuiz()" class="cursor-pointer px-5 py-2 text-sm text-white font-semibold bg-green-600 rounded-lg hover:bg-green-800 flex items-center gap-2" style="display: none;">
+          <i class="fas fa-check-circle"></i> Submit
+        </button>
+      </div>
+    </div>    
+
+    <div id="result-page" class="result p-8 mt-8 rounded-lg shadow-xl bg-gradient-to-r from-green-100 via-teal-100 to-green-100 text-gray-800" style="display:none;">
+        <h2 class="text-3xl text-[#007bff] font-[Audiowide] text-center">Results</h2>
+        <div class="percentage" id="result-percentage">85%</div>
+        <div id="chart-container">
+            <canvas id="resultChart"></canvas>
+        </div>
+        <div class="max-w-3xl mx-auto mt-8 space-y-6">
+          <!-- Info Section -->
+          <div class="bg-white border rounded-xl shadow-md p-4">
+            <h2 class="text-lg font-bold text-blue-700 mb-3 border-b pb-1">🧑‍🎓 Info</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-y-2 text-gray-800">
+              <div class="flex"><span class="font-medium w-28">ID</span><span class="mx-2">:</span><span id="result-id"></span></div>
+              <div class="flex"><span class="font-medium w-28">Name</span><span class="mx-2">:</span><span id="result-name"></span></div>
+              <div class="flex"><span class="font-medium w-28">Class</span><span class="mx-2">:</span><span id="result-class"></span></div>
+              <div class="flex"><span class="font-medium w-28">Group</span><span class="mx-2">:</span><span id="result-group"></span></div>
+            </div>
+          </div>
+        
+          <!-- Subject Section -->
+          <div class="bg-white border rounded-xl shadow-md p-4">
+            <h2 class="text-lg font-bold text-green-700 mb-3 border-b pb-1">📚 Subject</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-2 text-gray-800">
+              <div class="flex"><span class="font-medium w-36">Subjects</span><span class="mx-2">:</span><span id="result-subjects"></span></div>
+              <div class="flex"><span class="font-medium w-36">Question Type</span><span class="mx-2">:</span><span id="result-question-type"></span></div>
+            </div>
+          </div>
+        
+          <!-- Score Section -->
+          <div class="bg-white border rounded-xl shadow-md p-4">
+            <h2 class="text-lg font-bold text-red-700 mb-3 border-b pb-1">📊 Score</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-y-2 text-gray-800">
+              <div class="flex"><span class="font-medium w-20">Score</span><span class="mx-2">:</span><span id="result-score"></span></div>
+              <div class="flex"><span class="font-medium w-20">Correct</span><span class="mx-2">:</span><span id="result-correct"></span></div>
+              <div class="flex"><span class="font-medium w-20">Wrong</span><span class="mx-2">:</span><span id="result-wrong"></span></div>
+              <div class="flex"><span class="font-medium w-20">Skipped</span><span class="mx-2">:</span><span id="result-skipped"></span></div>
+            </div>
+          </div>
+        
+          <!-- Time Section -->
+          <div class="bg-white border rounded-xl shadow-md p-4">
+            <h2 class="text-lg font-bold text-purple-700 mb-3 border-b pb-1">⏱️ Time</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-y-2 text-gray-800">
+              <div class="flex"><span class="font-medium w-28">Duration</span><span class="mx-2">:</span><span id="result-duration"></span></div>
+              <div class="flex"><span class="font-medium w-28">Started</span><span class="mx-2">:</span><span id="result-start-time"></span></div>
+              <div class="flex"><span class="font-medium w-28">Completed</span><span class="mx-2">:</span><span id="result-end-time"></span></div>
+            </div>
+          </div>
+        </div>        
+        <br>
+        <!-- Show Answers Button -->
+        <div class="flex justify-center my-4">
+          <button id="show-answers-button"
+            class="cursor-pointer flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-2xl shadow-md hover:bg-blue-700 transition duration-300"
+            onclick="toggleAnswers()">
+            <i class="fas fa-eye"></i> Show Answers
+          </button>
+        </div>
+        <div id="detailed-answers" style="display:none;">
+            <h3 class="text-xl text-blue-700 font-semibold pb-3">Question Review</h3>
+            <div id="answers-container"></div>
+        </div>
+        <br>
+        <!-- Back to Login Button -->
+        <div class="flex justify-center my-4">
+          <button
+          class="cursor-pointer flex items-center gap-2 px-5 py-2 bg-gray-500 text-white rounded-2xl shadow-md hover:bg-gray-600 transition duration-300"
+          onclick="resetQuiz()">
+            <i class="fas fa-arrow-left"></i>
+          Back to Login
+          </button>
+        </div>
+    </div>
+  </div>
+
+    <script>
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let startTime;
+        let timerInterval;
+        let selectedSubjects = [];
+        let totalQuestions = 0;
+        let skippedQuestions = [];
+        let resultChart = null; // Variable to store chart instance
+        let quizTimestamp = null; // Variable to store the timestamp for identifying quiz attempts
+        let countdownInterval = null; // Variable to store countdown interval
+        let endCountdownInterval = null; // Variable to store end countdown interval
+        let userAnswers = []; // Array to store user's answers for each question
+        let questionCounts = {}; // Global variable to store question counts
+
+        // First check access when page loads
+        $(document).ready(function() {
+            checkAccessTime();
+        });
+
+        function checkAccessTime() {
+            $.getJSON('https://script.google.com/macros/s/AKfycbw6dhdnh7dl7f2XGXiT2lfApLxmn4lQeB1YmXGiIXVScwIhTWht6WLex8JXxJoh-3gB/exec?action=checkAccess', function(data) {
+                // Check if quiz has ended
+                if (data.quizEnded) {
+                    showQuizEndPage();
+                    return;
+                }
+                
+                // Check if there's an end date
+                if (data.endDateTime) {
+                    // Store end date for later use
+                    localStorage.setItem('quizEndDateTime', data.endDateTime);
+                }
+                
+                if (data.accessEnabled) {
+                    // If access is enabled, show login page
+                    document.getElementById('login-page').style.display = 'block';
+                    document.getElementById('quiz-start').style.display = 'block';
+                    document.getElementById('quiz-session').style.display = 'none';
+                    document.getElementById('countdown-page').style.display = 'none';
+                    document.getElementById('quiz-end-page').style.display = 'none';
+                    document.getElementById('quiz-end-countdown').style.display = 'none';
+                    
+                    // If there's an end date, start the end countdown timer
+                    if (data.endDateTime) {
+                        const endDate = new Date(data.endDateTime);
+                        // Show the end countdown
+                        document.getElementById('quiz-end-countdown').style.display = 'block';
+                        startEndCountdown(endDate);
+                    }
+                } else if (data.accessDateTime) {
+                    // If access date is set but not yet reached, show countdown
+                    document.getElementById('login-page').style.display = 'none';
+                    document.getElementById('quiz-start').style.display = 'none';
+                    document.getElementById('quiz-session').style.display = 'block';
+                    document.getElementById('countdown-page').style.display = 'block';
+                    document.getElementById('quiz-end-page').style.display = 'none';
+                    document.getElementById('quiz-end-countdown').style.display = 'none';
+                    
+                    // Parse the access date and time
+                    const accessDate = new Date(data.accessDateTime);
+                    startCountdown(accessDate);
+                } else {
+                    // If access is disabled and no date is set
+                    document.getElementById('login-page').style.display = 'none';
+                    document.getElementById('quiz-start').style.display = 'none';
+                    document.getElementById('countdown-page').style.display = 'block';
+                    document.getElementById('quiz-end-page').style.display = 'none';
+                    document.getElementById('quiz-end-countdown').style.display = 'none';
+                    document.getElementById('quiz-session').style.display = 'block';
+                    document.getElementById('countdown-timer').innerHTML = "<span class='text-red-500'>Access Denied</span>";
+                }
+            });
+        }
+        
+        function showQuizEndPage() {
+            // Hide all other pages
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('quiz-session').style.display = 'none';
+            document.getElementById('countdown-page').style.display = 'none';
+            document.getElementById('quiz-page').style.display = 'none';
+            document.getElementById('subjects-page').style.display = 'none';
+            document.getElementById('rules-page').style.display = 'none';
+            document.getElementById('result-page').style.display = 'none';
+            document.getElementById('quiz-end-countdown').style.display = 'none';
+            
+            // Show end page
+            document.getElementById('quiz-session').style.display = 'block';
+            document.getElementById('quiz-end-page').style.display = 'block';
+            document.getElementById('quiz-start').style.display = 'none';
+        }
+
+        function startCountdown(targetDate) {
+            // Clear any existing interval
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            function updateCountdown() {
+                const currentDate = new Date();
+                const difference = targetDate - currentDate;
+                
+                if (difference <= 0) {
+                    // Time has passed, check access again
+                    clearInterval(countdownInterval);
+                    checkAccessTime();
+                    return;
+                }
+                
+                // Calculate days, hours, minutes, seconds
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+                
+                const startTimerHTML = `
+                      <div class="bg-[#007bff] p-4 rounded-xl shadow-md w-20 text-center">
+                          <div>${String(days).padStart(2, '0')}</div>
+                          <div class="text-sm mt-1">Days</div>
+                      </div>
+                      <div class="bg-[#007bff] p-4 rounded-xl shadow-md w-20 text-center">
+                          <div>${String(hours).padStart(2, '0')}</div>
+                          <div class="text-sm mt-1">Hours</div>
+                      </div>
+                      <div class="bg-[#007bff] p-4 rounded-xl shadow-md w-20 text-center">
+                          <div>${String(minutes).padStart(2, '0')}</div>
+                          <div class="text-sm mt-1">Min</div>
+                      </div>
+                      <div class="bg-[#007bff] p-4 rounded-xl shadow-md w-20 text-center">
+                          <div>${String(seconds).padStart(2, '0')}</div>
+                          <div class="text-sm mt-1">Sec</div>
+                      </div>
+                  `;
+
+                  document.getElementById('countdown-timer').innerHTML = startTimerHTML;
+            }
+            
+            // Update immediately and then every second
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+        
+        function startEndCountdown(targetDate) {
+          if (endCountdownInterval) {
+              clearInterval(endCountdownInterval);
+          }
+
+              function updateEndCountdown() {
+                  const currentDate = new Date();
+                  const difference = targetDate - currentDate;
+
+                  if (difference <= 0) {
+                      clearInterval(endCountdownInterval);
+                      showQuizEndPage();
+                      return;
+                  }
+
+                  const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                  const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                  const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                  const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+                  const timerHTML = `
+                      <div class="bg-[#007bff] p-4 rounded-xl shadow-md w-20 text-center">
+                          <div>${String(days).padStart(2, '0')}</div>
+                          <div class="text-sm mt-1">Days</div>
+                      </div>
+                      <div class="bg-[#007bff] p-4 rounded-xl shadow-md w-20 text-center">
+                          <div>${String(hours).padStart(2, '0')}</div>
+                          <div class="text-sm mt-1">Hours</div>
+                      </div>
+                      <div class="bg-[#007bff] p-4 rounded-xl shadow-md w-20 text-center">
+                          <div>${String(minutes).padStart(2, '0')}</div>
+                          <div class="text-sm mt-1">Min</div>
+                      </div>
+                      <div class="bg-[#007bff] p-4 rounded-xl shadow-md w-20 text-center">
+                          <div>${String(seconds).padStart(2, '0')}</div>
+                          <div class="text-sm mt-1">Sec</div>
+                      </div>
+                  `;
+
+                  document.getElementById('end-countdown-timer').innerHTML = timerHTML;
+              }
+
+              updateEndCountdown();
+              endCountdownInterval = setInterval(updateEndCountdown, 1000);
+          }
+
+          function login() {
+              // Check if quiz has ended
+              const endDateTimeString = localStorage.getItem('quizEndDateTime');
+              if (endDateTimeString) {
+                  const endDateTime = new Date(endDateTimeString);
+                  const currentDate = new Date();
+                  
+                  if (currentDate > endDateTime) {
+                      showQuizEndPage();
+                      return;
+                  }
+              }
+              
+              const id = document.getElementById('login-id').value.trim();
+              const password = document.getElementById('login-password').value.trim();
+              
+              // Reset error messages
+              document.getElementById('id-error').style.display = 'none';
+              document.getElementById('password-error').style.display = 'none';
+              
+              // Validate fields
+              let hasError = false;
+              
+              if (!id) {
+                  document.getElementById('id-error').style.display = 'block';
+                  hasError = true;
+              }
+              
+              if (!password) {
+                  document.getElementById('password-error').style.display = 'block';
+                  hasError = true;
+              }
+              
+              if (hasError) {
+                  return;
+              }
+              
+              // Show loading state
+              const loginButton = document.getElementById('login-button');
+              const originalText = loginButton.innerHTML;
+              loginButton.innerHTML = '<span class="loading-spinner"></span> Logging in...';
+              loginButton.disabled = true;
+
+              $.getJSON('https://script.google.com/macros/s/AKfycbw6dhdnh7dl7f2XGXiT2lfApLxmn4lQeB1YmXGiIXVScwIhTWht6WLex8JXxJoh-3gB/exec?action=login&id=' + id + '&password=' + password, function(data) {
+                  // Reset button state
+                  loginButton.innerHTML = originalText;
+                  loginButton.disabled = false;
+                  
+                  if (data.success) {
+                      localStorage.setItem('id', id);
+                      localStorage.setItem('name', data.name);
+                      localStorage.setItem('class', data.class);
+                      localStorage.setItem('group', data.group);
+                      
+                      // Store class subject restrictions if any
+                      if (data.classSubjects && data.classSubjects.length > 0) {
+                          localStorage.setItem('classSubjects', JSON.stringify(data.classSubjects));
+                      } else {
+                          localStorage.removeItem('classSubjects');
+                      }
+                      
+                      showRulesPage();
+                  } else {
+                      Swal.fire({
+                          title: "Warning!",
+                          text: data.message,
+                          icon: "warning"
+                      });
+                  }
+              }).fail(function() {
+                  // Reset button state
+                  loginButton.innerHTML = originalText;
+                  loginButton.disabled = false;
+                  
+                  // Show error message
+                  Swal.fire({
+                      title: "Error!",
+                      text: "Connection error. Please check your internet connection and try again.",
+                      icon: "error"
+                  });
+              });
+          }
+
+              // Add event listeners for input fields to validate on input
+              document.addEventListener('DOMContentLoaded', function() {
+              const idInput = document.getElementById('login-id');
+              const passwordInput = document.getElementById('login-password');
+              const loginButton = document.getElementById('login-button');
+
+              // Function to validate inputs and hide error messages
+              function validateInput(input, errorElementId) {
+                  if (input.value.trim()) {
+                      document.getElementById(errorElementId).style.display = 'none';
+                  }
+              }
+
+              // Input validation on change
+              idInput.addEventListener('input', function() {
+                  validateInput(this, 'id-error');
+              });
+
+              passwordInput.addEventListener('input', function() {
+                  validateInput(this, 'password-error');
+              });
+
+              // Consolidated Enter key handler
+              function handleEnterKey(e) {
+                  if (e.key === 'Enter') {
+                      e.preventDefault();
+                      // Only trigger login if the button is not already in loading state
+                      if (!loginButton.disabled) {
+                          login();
+                      }
+                  }
+              }
+
+              // Add Enter key listeners to both inputs
+              idInput.addEventListener('keypress', handleEnterKey);
+              passwordInput.addEventListener('keypress', handleEnterKey);
+          });
+
+        function showRulesPage() {
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('rules-page').style.display = 'block';
+            loadRules();
+        }
+        
+        function backToLogin() {
+            document.getElementById('rules-page').style.display = 'none';
+            document.getElementById('subjects-page').style.display = 'none';
+            document.getElementById('login-page').style.display = 'block';
+        }
+
+        function goToSubjects() {
+            // Check if quiz has ended
+            checkQuizEndTime();
+            
+            document.getElementById('rules-page').style.display = 'none';
+            document.getElementById('subjects-page').style.display = 'block';
+            loadSubjects();
+        }
+
+        function backToRules() {
+            // Check if quiz has ended
+            checkQuizEndTime();
+            
+            document.getElementById('subjects-page').style.display = 'none';
+            document.getElementById('rules-page').style.display = 'block';
+        }
+        
+        function checkQuizEndTime() {
+            const endDateTimeString = localStorage.getItem('quizEndDateTime');
+            if (endDateTimeString) {
+                const endDateTime = new Date(endDateTimeString);
+                const currentDate = new Date();
+                
+                if (currentDate > endDateTime) {
+                    showQuizEndPage();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Modified loadSubjects function (unchanged from previous, included for context)
+        function loadSubjects() {
+            $.getJSON('https://script.google.com/macros/s/AKfycbw6dhdnh7dl7f2XGXiT2lfApLxmn4lQeB1YmXGiIXVScwIhTWht6WLex8JXxJoh-3gB/exec?action=getSubjects', function(data) {
+                let subjectsList = '';
+                
+                // If user has class restrictions on subjects
+                const classSubjects = localStorage.getItem('classSubjects');
+                let availableSubjects = data.subjects;
+                
+                if (classSubjects && classSubjects !== '') {
+                    const restrictedSubjects = JSON.parse(classSubjects);
+                    if (restrictedSubjects.length > 0) {
+                        availableSubjects = data.subjects.filter(subject => restrictedSubjects.includes(subject));
+                    }
+                }
+                
+                availableSubjects.forEach(subject => {
+                    subjectsList += `<div class="subjects-list">
+                                        <label>
+                                            <input type="checkbox" class="checkbox" value="${subject}" onchange="toggleSubject('${subject}')"> ${subject}
+                                        </label>
+                                    </div>`;
+                });
+                document.getElementById('subjects-list').innerHTML = subjectsList;
+                
+                // Store question counts and control settings
+                questionCounts = data.questionCounts;
+                localStorage.setItem('questionCountEnabled', data.controls.questionCountEnabled);
+                
+                // Store default settings
+                if (data.controls) {
+                    localStorage.setItem('defaultQuestionNumber', data.controls.defaultQuestionNumber || 10);
+                    localStorage.setItem('defaultTimePerQuestion', data.controls.defaultTimePerQuestion || 30);
+                    localStorage.setItem('defaultPoint', data.controls.defaultPoint || 1);
+                    localStorage.setItem('negativeMarkingEnabled', data.controls.negativeMarkingEnabled || false);
+                    localStorage.setItem('negativeMark', data.controls.negativeMark || 0);
+                }
+                
+                // Show quiz control options if enabled
+                if (data.controls) {
+                    document.getElementById('quiz-options').style.display = 'block';
+                    
+                    if (data.controls.questionTypeEnabled) {
+                        document.getElementById('question-type-container').style.display = 'block';
+                        // Add event listeners for question type changes
+                        document.querySelectorAll('input[name="questionType"]').forEach(input => {
+                            input.addEventListener('change', updateQuestionCountDisplay);
+                        });
+                    }
+                    
+                    if (data.controls.questionNumberEnabled) {
+                        document.getElementById('question-number-container').style.display = 'block';
+                        if (data.controls.defaultQuestionNumber) {
+                            document.getElementById('question-number').value = data.controls.defaultQuestionNumber;
+                            document.getElementById('question-number').placeholder = `Default: ${data.controls.defaultQuestionNumber}`;
+                        }
+                    }
+                    
+                    if (data.controls.timerChoiceEnabled) {
+                        document.getElementById('timer-choice-container').style.display = 'block';
+                        if (data.controls.defaultTimePerQuestion) {
+                            document.getElementById('timer-choice').placeholder = `Default: ${data.controls.defaultTimePerQuestion} sec/question`;
+                        }
+                    }
+                    
+                    // Update question count display
+                    updateQuestionCountDisplay();
+                }
+            });
+        }
+
+        // Modified toggleSubject function
+        function toggleSubject(subject) {
+            if (selectedSubjects.includes(subject)) {
+                selectedSubjects = selectedSubjects.filter(sub => sub !== subject);
+            } else {
+                selectedSubjects.push(subject);
+            }
+            
+            // Update the selected subjects and question count display
+            updateSelectedSubjectsDisplay();
+            updateQuestionCountDisplay();
+        }
+
+        // Modified updateSelectedSubjectsDisplay function
+        function updateSelectedSubjectsDisplay() {
+            const selectedSubjectsContainer = document.getElementById('selected-subjects');
+            selectedSubjectsContainer.innerHTML = '';
+            
+            if (selectedSubjects.length > 0) {
+                selectedSubjects.forEach(subject => {
+                    const subjectTag = document.createElement('div');
+                    subjectTag.className = 'subject-tag';
+                    subjectTag.innerHTML = `
+                        <span>${subject}</span>
+                        <i class="fas fa-times" onclick="removeSubject('${subject.replace(/'/g, "\\'")}')"></i>
+                    `;
+                    selectedSubjectsContainer.appendChild(subjectTag);
+                });
+            }
+            
+            // Update question count display
+            updateQuestionCountDisplay();
+        }
+
+        // Add the new removeSubject function here
+        function removeSubject(subject) {
+            // Remove the subject from selectedSubjects array
+            selectedSubjects = selectedSubjects.filter(sub => sub !== subject);
+            
+            // Uncheck the corresponding checkbox
+            const checkboxes = document.querySelectorAll('#subjects-list input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                if (checkbox.value === subject) {
+                    checkbox.checked = false;
+                }
+            });
+            
+            // Update the selected subjects and question count display
+            updateSelectedSubjectsDisplay();
+            updateQuestionCountDisplay();
+        }
+
+        // Updated updateQuestionCountDisplay function
+        function updateQuestionCountDisplay() {
+            const questionCountEnabled = localStorage.getItem('questionCountEnabled') === 'true';
+            const countElements = {
+                All: document.getElementById('count-all'),
+                Easy: document.getElementById('count-easy'),
+                Medium: document.getElementById('count-medium'),
+                Hard: document.getElementById('count-hard')
+            };
+            
+            // Hide counts if questionCountEnabled is false
+            if (!questionCountEnabled) {
+                Object.values(countElements).forEach(element => {
+                    element.classList.add('hidden');
+                });
+                return;
+            }
+            
+            // Calculate counts for each question type
+            const questionTypes = ['All', 'Easy', 'Medium', 'Hard'];
+            const counts = {
+                All: 0,
+                Easy: 0,
+                Medium: 0,
+                Hard: 0
+            };
+            
+            if (selectedSubjects.length === 0) {
+                // Sum questions for all subjects
+                Object.keys(questionCounts).forEach(subject => {
+                    questionTypes.forEach(type => {
+                        counts[type] += questionCounts[subject][type] || 0;
+                    });
+                });
+            } else {
+                // Sum questions for selected subjects only
+                selectedSubjects.forEach(subject => {
+                    questionTypes.forEach(type => {
+                        counts[type] += questionCounts[subject][type] || 0;
+                    });
+                });
+            }
+            
+            // Update the display for each question type
+            Object.keys(countElements).forEach(type => {
+                countElements[type].innerText = `(${counts[type]})`;
+                countElements[type].classList.remove('hidden');
+            });
+        }
+
+        function startQuiz() {
+            // Check if quiz has ended
+            if (checkQuizEndTime()) {
+                return;
+            }
+            
+            if (selectedSubjects.length === 0) {
+                Swal.fire({
+                  title: "Info!",
+                  text: "Please select at least one subject",
+                  icon: "info"
+                });
+                return;
+            }
+
+            const id = localStorage.getItem('id');
+            const name = localStorage.getItem('name');
+            const className = localStorage.getItem('class');
+            const group = localStorage.getItem('group');
+            const subjects = selectedSubjects.join(', ');
+            
+            // Get additional quiz options
+            const questionType = document.querySelector('input[name="questionType"]:checked')?.value || 'All';
+            const questionNumber = document.getElementById('question-number')?.value || '';
+            const timerChoice = document.getElementById('timer-choice')?.value || '';
+            
+            // Check if end countdown is active and show alert
+            const endDateTimeString = localStorage.getItem('quizEndDateTime');
+            if (endDateTimeString) {
+                const endDateTime = new Date(endDateTimeString);
+                const currentDate = new Date();
+                const timeRemaining = endDateTime - currentDate;
+                
+                // If less than 5 minutes remain, warn the user
+                if (timeRemaining > 0 && timeRemaining < 300000) { // 5 minutes in milliseconds
+                    Swal.fire({
+                        title: "Warning!",
+                        text: "The quiz session will end soon. You may not have enough time to complete it.",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "Continue anyway",
+                        cancelButtonText: "Cancel"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // User wants to continue despite the warning
+                            fetchQuizQuestions(id, name, className, group, subjects, questionType, questionNumber, timerChoice);
+                        }
+                    });
+                    return;
+                }
+            }
+            
+            // No time warning needed, proceed with fetching questions
+            fetchQuizQuestions(id, name, className, group, subjects, questionType, questionNumber, timerChoice);
+        }
+        
+        function fetchQuizQuestions(id, name, className, group, subjects, questionType, questionNumber, timerChoice) {
+            // Show loading state
+            const startButton = document.getElementById('start-quiz-button');
+            const originalText = startButton.innerHTML;
+            startButton.innerHTML = '<span class="loading-spinner"></span> Starting...';
+            startButton.disabled = true;
+            
+            // Calculate total time: time per question * number of questions (only if questionNumber is a number)
+            let totalTimerChoice = (questionNumber !== 'all' && timerChoice && questionNumber) ? parseInt(timerChoice) * parseInt(questionNumber) : 0;
+            
+            // Build URL with all parameters
+            let quizUrl = `https://script.google.com/macros/s/AKfycbw6dhdnh7dl7f2XGXiT2lfApLxmn4lQeB1YmXGiIXVScwIhTWht6WLex8JXxJoh-3gB/exec?action=startQuiz&id=${id}&name=${name}&class=${className}&group=${group}&subjects=${subjects}`;
+            
+            if (questionType) {
+                quizUrl += `&questionType=${questionType}`;
+            }
+            
+            if (questionNumber !== 'all') {
+                quizUrl += `&questionNumber=${questionNumber}`;
+            } else {
+                quizUrl += `&questionNumber=all`; // Explicitly indicate all questions
+            }
+            
+            if (timerChoice && questionNumber !== 'all') {
+                quizUrl += `&timerChoice=${totalTimerChoice}`; // Send total time
+            } else if (timerChoice) {
+                quizUrl += `&timerChoicePerQuestion=${timerChoice}`; // Send time per question for 'all' case
+            }
+
+            $.getJSON(quizUrl, function(data) {
+                // Reset button state
+                startButton.innerHTML = originalText;
+                startButton.disabled = false;
+                
+                if (data.success) {
+                    questions = data.questions;
+                    totalQuestions = data.totalQuestions;
+                    startTime = new Date();
+                    startTimer(data.totalTime);
+                    showQuizPage();
+                    displayQuestion();
+                    
+                    // Store show result option
+                    localStorage.setItem('showResult', data.showResultEnabled);
+                    
+                    // Store timestamp for tracking duplicate attempts
+                    quizTimestamp = data.timestamp;
+                    
+                    // Store quiz start time
+                    localStorage.setItem('quizStartTime', data.startTime);
+                    
+                    // Store question type for results page
+                    localStorage.setItem('questionType', questionType);
+                    
+                    // Store clear option setting
+                    localStorage.setItem('clearOptionEnabled', data.clearOptionEnabled);
+                    
+                    // Show or hide the skip button based on server configuration
+                    if (data.skipEnabled && data.questions.length > 1) {
+                        document.getElementById('skip-button').style.display = 'block';
+                    } else {
+                        document.getElementById('skip-button').style.display = 'none';
+                    }
+                    
+                    // Show or hide the previous button based on server configuration
+                    if (data.previousButtonEnabled) {
+                        localStorage.setItem('previousEnabled', 'true');
+                    } else {
+                        localStorage.setItem('previousEnabled', 'false');
+                    }
+                    
+                    // Check for end time and start a count down if needed
+                    const endDateTimeString = localStorage.getItem('quizEndDateTime');
+                    if (endDateTimeString) {
+                        // Set up a check every 10 seconds to see if the quiz has ended
+                        setInterval(function() {
+                            if (checkQuizEndTime()) {
+                                // If quiz has ended during the test, auto-submit
+                                submitQuiz();
+                            }
+                        }, 10000);
+                    }
+                } else {
+                    Swal.fire({
+                        title: "Failed!",
+                        text: "Failed to start quiz",
+                        icon: "error"
+                    });
+                }
+            }).fail(function() {
+                // Reset button state
+                startButton.innerHTML = originalText;
+                startButton.disabled = false;
+                
+                // Show error message
+                Swal.fire({
+                    title: "Error!",
+                    text: "Connection error. Please check your internet connection and try again.",
+                    icon: "error"
+                });
+            });
+        }
+
+        function showQuizPage() {
+            document.getElementById('subjects-page').style.display = 'none';
+            document.getElementById('quiz-page').style.display = 'block';
+        }
+
+        function displayQuestion() {
+            const question = questions[currentQuestionIndex];
+            document.getElementById('question-text').innerText = question.text;
+            document.getElementById('option1-text').innerText = question.options[0];
+            document.getElementById('option2-text').innerText = question.options[1];
+            document.getElementById('option3-text').innerText = question.options[2];
+            document.getElementById('option4-text').innerText = question.options[3];
+            document.getElementById('question-numbers').innerText = `${currentQuestionIndex + 1} of ${questions.length} Questions`;
+            
+            // Handle question image
+            const questionImageContainer = document.getElementById('question-image-container');
+            const questionImage = document.getElementById('question-image');
+            
+            if (question.image && question.image.trim() !== '') {
+                // Check if it's a Google Drive thumbnail URL
+                if (question.image.includes('drive.google.com/thumbnail')) {
+                    // Use the URL as is
+                    questionImage.src = question.image;
+                } else if (question.image.includes('drive.google.com')) {
+                    // Extract file ID from Google Drive URL
+                    const fileId = extractGoogleDriveFileId(question.image);
+                    if (fileId) {
+                        // Create a direct thumbnail URL
+                        questionImage.src = `https://drive.google.com/thumbnail?id=${fileId}`;
+                    } else {
+                        // If we can't extract the ID, use the original URL
+                        questionImage.src = question.image;
+                    }
+                } else {
+                    // For other URLs, use as is
+                    questionImage.src = question.image;
+                }
+                
+                // Add error handling for image loading
+                questionImage.onerror = function() {
+                    console.error('Error loading image:', question.image);
+                    questionImageContainer.style.display = 'none';
+                };
+                
+                questionImageContainer.style.display = 'block';
+            } else {
+                questionImageContainer.style.display = 'none';
+            }
+            
+            // Check if clear option is enabled
+            const clearOptionEnabled = localStorage.getItem('clearOptionEnabled') === 'true';
+            const clearQuestionButton = document.getElementById('clear-question-btn');
+            
+            // Initially hide the clear button
+            clearQuestionButton.style.display = 'none';
+            
+            // Check if this question has a saved answer
+            const savedAnswer = userAnswers[currentQuestionIndex];
+            if (savedAnswer && savedAnswer.userSelectionIndex !== undefined) {
+                // Re-select the saved answer
+                document.querySelectorAll('input[name="option"]')[savedAnswer.userSelectionIndex].checked = true;
+                
+                // Show clear button if an option is selected and clear option is enabled
+                if (clearOptionEnabled) {
+                    clearQuestionButton.style.display = 'block';
+                }
+            } else {
+                // No saved answer, uncheck all
+                document.querySelectorAll('input[name="option"]').forEach(input => input.checked = false);
+            }
+
+            // Add event listeners to radio buttons to show/hide clear button
+            document.querySelectorAll('input[name="option"]').forEach(input => {
+                input.addEventListener('change', function() {
+                    if (this.checked && clearOptionEnabled) {
+                        clearQuestionButton.style.display = 'block';
+                    } else if (!document.querySelector('input[name="option"]:checked') && clearOptionEnabled) {
+                        clearQuestionButton.style.display = 'none';
+                    }
+                });
+            });
+
+            // Show/hide previous button
+            const previousEnabled = localStorage.getItem('previousEnabled') === 'true';
+            if (previousEnabled && currentQuestionIndex > 0) {
+                document.getElementById('prev-button').style.display = 'block';
+            } else {
+                document.getElementById('prev-button').style.display = 'none';
+            }
+            
+            // Show/hide skip button - hide on last question
+            if (currentQuestionIndex === questions.length - 1) {
+                document.getElementById('skip-button').style.display = 'none';
+                document.getElementById('next-button').style.display = 'none';
+                document.getElementById('submit-button').style.display = 'block';
+            } else {
+                // Keep skip button visible on all other questions if it was enabled
+                if (document.getElementById('skip-button').style.display !== 'none') {
+                    document.getElementById('skip-button').style.display = 'block';
+                }
+                document.getElementById('next-button').style.display = 'block';
+                document.getElementById('submit-button').style.display = 'none';
+            }
+            
+            // Add event listeners for keyboard navigation
+            setupKeyboardNavigation();
+        }
+        
+        function setupKeyboardNavigation() {
+            // Remove any existing event listeners
+            document.removeEventListener('keydown', handleQuizKeyPress);
+            
+            // Add the event listener
+            document.addEventListener('keydown', handleQuizKeyPress);
+        }
+        
+        function handleQuizKeyPress(e) {
+            // Only process if we're on the quiz page
+            if (document.getElementById('quiz-page').style.display !== 'block') {
+                return;
+            }
+            
+            // Number keys 1-4 select options
+            if (e.key >= '1' && e.key <= '4') {
+                const optionIndex = parseInt(e.key) - 1;
+                const optionInputs = document.querySelectorAll('input[name="option"]');
+                if (optionIndex < optionInputs.length) {
+                    optionInputs[optionIndex].checked = true;
+                }
+            }
+            
+            // 'c' key to clear selection if clear button is visible
+            if ((e.key === 'c' || e.key === 'C') && 
+                document.getElementById('clear-question-btn').style.display === 'block') {
+                clearQuestion();
+            }
+            
+            // Enter key to go next/submit
+            if (e.key === 'Enter') {
+                const nextButton = document.getElementById('next-button');
+                const submitButton = document.getElementById('submit-button');
+                
+                if (submitButton.style.display === 'block') {
+                    submitQuiz();
+                } else if (nextButton.style.display === 'block') {
+                    nextQuestion();
+                }
+            }
+            
+            // Space key for Skip if it's visible
+            if (e.key === ' ' && document.getElementById('skip-button').style.display === 'block') {
+                e.preventDefault(); // Prevent page scrolling
+                skipQuestion();
+            }
+            
+            // Left arrow for Previous if it's visible
+            if (e.key === 'ArrowLeft' && document.getElementById('prev-button').style.display === 'block') {
+                prevQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            const selectedOption = document.querySelector('input[name="option"]:checked');
+            const previousEnabled = localStorage.getItem('previousEnabled') === 'true';
+            
+            // If previous button is enabled, we allow next without selection
+            if (!selectedOption && !previousEnabled) {
+                Swal.fire({
+                  title: "Info!",
+                  text: "Please select an option before proceeding",
+                  icon: "info"
+                });
+                return;
+            }
+
+            // Get point settings
+            const defaultPoint = parseFloat(localStorage.getItem('defaultPoint') || 1);
+            const negativeMarkingEnabled = localStorage.getItem('negativeMarkingEnabled') === 'true';
+            const negativeMark = parseFloat(localStorage.getItem('negativeMark') || 0);
+
+            // Save user's answer if an option is selected
+            if (selectedOption) {
+                const selectedValue = parseInt(selectedOption.value);
+                const isCorrect = questions[currentQuestionIndex].options[selectedValue] === questions[currentQuestionIndex].correct;
+                
+                userAnswers[currentQuestionIndex] = {
+                    questionText: questions[currentQuestionIndex].text,
+                    options: questions[currentQuestionIndex].options,
+                    correctAnswer: questions[currentQuestionIndex].correct,
+                    userSelection: questions[currentQuestionIndex].options[selectedValue],
+                    userSelectionIndex: selectedValue,
+                    isCorrect: isCorrect,
+                    points: isCorrect ? defaultPoint : (negativeMarkingEnabled ? -negativeMark : 0),
+                    image: questions[currentQuestionIndex].image || '' // Save image URL
+                };
+
+                if (isCorrect) {
+                    score++;
+                }
+            } else if (previousEnabled) {
+                // If no option is selected but previous button is enabled, just save the current state as unanswered
+                userAnswers[currentQuestionIndex] = {
+                    questionText: questions[currentQuestionIndex].text,
+                    options: questions[currentQuestionIndex].options,
+                    correctAnswer: questions[currentQuestionIndex].correct,
+                    userSelection: null,
+                    userSelectionIndex: undefined,
+                    isCorrect: false,
+                    points: 0,
+                    skipped: true,
+                    image: questions[currentQuestionIndex].image || '' // Save image URL
+                };
+            }
+            
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                displayQuestion();
+            }
+        }
+        
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion();
+            }
+        }
+
+        function skipQuestion() {
+            // Save skipped question information
+            userAnswers[currentQuestionIndex] = {
+                questionText: questions[currentQuestionIndex].text,
+                options: questions[currentQuestionIndex].options,
+                correctAnswer: questions[currentQuestionIndex].correct,
+                userSelection: null,
+                userSelectionIndex: undefined,
+                isCorrect: false,
+                skipped: true,
+                points: 0,
+                image: questions[currentQuestionIndex].image || '' // Save image URL
+            };
+            
+            skippedQuestions.push(currentQuestionIndex);
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                displayQuestion();
+            }
+        }
+
+        function startTimer(totalTime) {
+            const timer = document.getElementById('timer');
+            const timerProgress = document.getElementById('timer-progress');
+            let totalSeconds = totalTime;
+            
+            // Set initial progress
+            timerProgress.style.width = '100%';
+            
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((new Date() - startTime) / 1000);
+                const remaining = totalTime - elapsed;
+                
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    submitQuiz();
+                } else {
+                    const minutes = Math.floor(remaining / 60);
+                    const seconds = remaining % 60;
+                    timer.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                    
+                    // Update progress bar
+                    const progressPercentage = (remaining / totalTime) * 100;
+                    timerProgress.style.width = `${progressPercentage}%`;
+                    
+                    // Change color based on remaining time
+                    if (progressPercentage <= 25) {
+                        timerProgress.classList.add('danger');
+                        timerProgress.classList.remove('warning');
+                    } else if (progressPercentage <= 50) {
+                        timerProgress.classList.add('warning');
+                        timerProgress.classList.remove('danger');
+                    } else {
+                        timerProgress.classList.remove('warning', 'danger');
+                    }
+                }
+            }, 1000);
+        }
+
+        function submitQuiz() {
+            // Show submitting process without blocking keyboard events
+            Swal.fire({
+                title: 'Submitting Quiz',
+                html: 'Please wait...',
+                allowOutsideClick: false,
+                allowEnterKey: true, // Explicitly allow Enter key
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            clearInterval(timerInterval);
+
+            // Get point settings
+            const defaultPoint = parseFloat(localStorage.getItem('defaultPoint') || 1);
+            const negativeMarkingEnabled = localStorage.getItem('negativeMarkingEnabled') === 'true';
+            const negativeMark = parseFloat(localStorage.getItem('negativeMark') || 0);
+
+            // Handle the current question
+            const selectedOption = document.querySelector('input[name="option"]:checked');
+            if (selectedOption) {
+                // Save user's answer for the current question
+                const selectedValue = parseInt(selectedOption.value);
+                userAnswers[currentQuestionIndex] = {
+                    questionText: questions[currentQuestionIndex].text,
+                    options: questions[currentQuestionIndex].options,
+                    correctAnswer: questions[currentQuestionIndex].correct,
+                    userSelection: questions[currentQuestionIndex].options[selectedValue],
+                    userSelectionIndex: selectedValue,
+                    isCorrect: questions[currentQuestionIndex].options[selectedValue] === questions[currentQuestionIndex].correct,
+                    points: questions[currentQuestionIndex].options[selectedValue] === questions[currentQuestionIndex].correct ? 
+                        defaultPoint : 
+                        (negativeMarkingEnabled ? -negativeMark : 0),
+                    image: questions[currentQuestionIndex].image || '' // Save image URL
+                };
+                
+                if (questions[currentQuestionIndex].options[selectedValue] === questions[currentQuestionIndex].correct) {
+                    score++;
+                }
+            } else {
+                // If no option is selected for the current question, count it as skipped
+                userAnswers[currentQuestionIndex] = {
+                    questionText: questions[currentQuestionIndex].text,
+                    options: questions[currentQuestionIndex].options,
+                    correctAnswer: questions[currentQuestionIndex].correct,
+                    userSelection: null,
+                    userSelectionIndex: undefined,
+                    isCorrect: false,
+                    skipped: true,
+                    points: 0,
+                    image: questions[currentQuestionIndex].image || '' // Save image URL
+                };
+                skippedQuestions.push(currentQuestionIndex);
+            }
+
+            // Handle remaining questions if any (auto-submission due to timer)
+            if (currentQuestionIndex < questions.length - 1) {
+                for (let i = currentQuestionIndex + 1; i < questions.length; i++) {
+                    userAnswers[i] = {
+                        questionText: questions[i].text,
+                        options: questions[i].options,
+                        correctAnswer: questions[i].correct,
+                        userSelection: null,
+                        userSelectionIndex: undefined,
+                        isCorrect: false,
+                        skipped: true,
+                        points: 0,
+                        image: questions[i].image || '' // Save image URL
+                    };
+                    skippedQuestions.push(i);
+                }
+            }
+
+            const id = localStorage.getItem('id');
+            const name = localStorage.getItem('name');
+            const className = localStorage.getItem('class');
+            const group = localStorage.getItem('group');
+            const subjects = selectedSubjects.join(', ');
+            const duration = Math.floor((new Date() - startTime) / 1000);
+            const quizStartTime = localStorage.getItem('quizStartTime');
+
+            // Calculate correct, wrong, and skipped answers
+            let correct = 0;
+            let wrong = 0;
+            let skipped = 0;
+
+            userAnswers.forEach(answer => {
+                if (answer.skipped) {
+                    skipped++;
+                } else if (answer.isCorrect) {
+                    correct++;
+                } else {
+                    wrong++;
+                }
+            });
+
+            // Calculate total score with points and negative marking
+            const totalScore = userAnswers.reduce((sum, answer) => sum + (answer.points || 0), 0);
+            const formattedTotalScore = totalScore.toFixed(2);
+
+            // Build the submission URL
+            let submitUrl = `https://script.google.com/macros/s/AKfycbw6dhdnh7dl7f2XGXiT2lfApLxmn4lQeB1YmXGiIXVScwIhTWht6WLex8JXxJoh-3gB/exec?action=submitQuiz&id=${id}&name=${name}&class=${className}&group=${group}&subjects=${subjects}&score=${score}/${questions.length}&totalQuestions=${totalQuestions}&correct=${correct}&wrong=${wrong}&skipped=${skipped}&duration=${duration}&totalScore=${formattedTotalScore}`;
+
+            // Add question type if available
+            const questionType = localStorage.getItem('questionType');
+            if (questionType) {
+                submitUrl += `&questionType=${encodeURIComponent(questionType)}`;
+            }
+
+            // Add timestamp parameter if it exists
+            if (quizTimestamp) {
+                submitUrl += `&timestamp=${encodeURIComponent(quizTimestamp)}`;
+            }
+
+            // Add start time if available
+            if (quizStartTime) {
+                submitUrl += `&startTime=${encodeURIComponent(quizStartTime)}`;
+            }
+
+            $.getJSON(submitUrl, function(data) {
+                // Close the loading dialog
+                Swal.close();
+
+                if (data.success) {
+                    // Only show results if enabled
+                    const showResult = localStorage.getItem('showResult');
+                    if (showResult === 'true') {
+                        // Add start time to data if not provided by server
+                        if (!data.startTime && quizStartTime) {
+                            data.startTime = quizStartTime;
+                        }
+                        showResultPage(data);
+                    } else {
+                        Swal.fire({
+                            title: "Success!",
+                            text: "Quiz submitted successfully",
+                            icon: "success"
+                        }).then(() => {
+                            resetQuiz();
+                        });
+                    }
+                } else {
+                    Swal.fire({
+                        title: "Failed!",
+                        text: "Failed to submit quiz",
+                        icon: "error"
+                    });
+                }
+            }).fail(function() {
+                // Handle network or server error
+                Swal.close();
+                Swal.fire({
+                    title: "Connection Error",
+                    text: "Failed to submit quiz. Please check your internet connection.",
+                    icon: "error"
+                });
+            });
+        }
+          
+        function showResultPage(data) {
+            document.getElementById('quiz-page').style.display = 'none';
+            document.getElementById('result-page').style.display = 'block';
+          
+            document.getElementById('result-id').innerText = data.id;
+            document.getElementById('result-name').innerText = data.name;
+            document.getElementById('result-class').innerText = data.class;
+            document.getElementById('result-group').innerText = data.group;
+            document.getElementById('result-subjects').innerText = data.subjects;
+            
+            // Display question type - use from server response or localStorage
+            const questionType = data.questionType || localStorage.getItem('questionType') || 'All';
+            document.getElementById('result-question-type').innerText = questionType;
+            
+            document.getElementById('result-score').innerText = data.score;
+            document.getElementById('result-correct').innerText = data.correct;
+            document.getElementById('result-wrong').innerText = data.wrong;
+            document.getElementById('result-skipped').innerText = data.skipped;
+            document.getElementById('result-duration').innerText = `${Math.floor(data.duration / 60)}:${data.duration % 60 < 10 ? '0' : ''}${data.duration % 60} Minutes`;
+            
+            // Display start and end times if available
+            if (data.startTime) {
+                document.getElementById('result-start-time').innerText = data.startTime;
+            }
+            if (data.endTime) {
+                document.getElementById('result-end-time').innerText = data.endTime;
+            }
+            
+            // Display percentage
+            document.getElementById('result-percentage').innerText = data.percentage + '%';
+            
+            // Destroy previous chart if it exists
+            if (resultChart) {
+                resultChart.destroy();
+            }
+            
+            // Create pie chart
+            const ctx = document.getElementById('resultChart').getContext('2d');
+            resultChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Correct', 'Wrong', 'Skipped'],
+                    datasets: [{
+                        data: [data.correct, data.wrong, data.skipped],
+                        backgroundColor: [
+                            '#4CAF50', // green for correct
+                            '#F44336', // red for wrong
+                            '#FFC107'  // amber for skipped
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Display negative marking info if enabled
+            const negativeMarkingEnabled = localStorage.getItem('negativeMarkingEnabled') === 'true';
+            const negativeMark = parseFloat(localStorage.getItem('negativeMark') || 0);
+            const defaultPoint = parseFloat(localStorage.getItem('defaultPoint') || 1);
+            
+            if (negativeMarkingEnabled) {
+                // Add negative marking info to the result page
+                const scoringInfo = document.createElement('div');
+                scoringInfo.className = 'scoring-info';
+                scoringInfo.innerHTML = `
+                    <h3>Scoring Information</h3>
+                    <p>Each correct answer: +${defaultPoint} points</p>
+                    <p>Each wrong answer: -${negativeMark} points</p>
+                    <p>Skipped questions: 0 points</p>
+                `;
+                
+                // Remove any existing scoring info first
+                const existingScoringInfo = document.querySelector('.scoring-info');
+                if (existingScoringInfo) {
+                    existingScoringInfo.remove();
+                }
+                
+                document.getElementById('result-page').insertBefore(scoringInfo, document.getElementById('chart-container'));
+            }
+            
+            // Generate detailed answers HTML
+            generateAnswersHTML();
+        }
+          
+        function toggleAnswers() {
+            const detailedAnswers = document.getElementById('detailed-answers');
+            const button = document.getElementById('show-answers-button');
+
+            if (detailedAnswers.style.display === 'none') {
+                detailedAnswers.style.display = 'block';
+                button.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Answers';
+            } else {
+                detailedAnswers.style.display = 'none';
+                button.innerHTML = '<i class="fas fa-eye"></i> Show Answers';
+            }
+        }
+          
+        function generateAnswersHTML() {
+            const container = document.getElementById('answers-container');
+            container.innerHTML = '';
+            
+            // Calculate total points
+            const totalPoints = userAnswers.reduce((sum, answer) => sum + (answer.points || 0), 0);
+            const formattedTotalPoints = totalPoints.toFixed(2);
+            const maxPoints = userAnswers.length * parseFloat(localStorage.getItem('defaultPoint') || 1);
+            
+            // Add points summary at the top
+            container.innerHTML = `
+                <div class="points-summary">
+                    <div class="total-points">Total Points: ${formattedTotalPoints}/${maxPoints}</div>
+                </div>
+            `;
+            
+            userAnswers.forEach((answer, index) => {
+                let statusClass = answer.skipped ? 'skipped' : (answer.isCorrect ? 'correct' : 'incorrect');
+                let statusText = answer.skipped ? 'Skipped' : (answer.isCorrect ? 'Correct' : 'Incorrect');
+                
+                let questionHTML = `
+                    <div class="question-review">
+                        <div class="answer-status ${statusClass}">${statusText}</div>
+                        <div class="question-text">Q${index + 1}: ${answer.questionText} <span class="question-points">[${answer.points > 0 ? '+' : ''}${answer.points} point${answer.points !== 1 ? 's' : ''}]</span></div>
+                `;
+                
+                // Add question image if available
+                if (answer.image && answer.image.trim() !== '') {
+                    let imageUrl = answer.image;
+                    
+                    // Check if it's a Google Drive thumbnail URL
+                    if (answer.image.includes('drive.google.com/thumbnail')) {
+                        // Use the URL as is
+                        imageUrl = answer.image;
+                    } else if (answer.image.includes('drive.google.com')) {
+                        // Extract file ID from Google Drive URL
+                        const fileId = extractGoogleDriveFileId(answer.image);
+                        if (fileId) {
+                            // Create a direct thumbnail URL
+                            imageUrl = `https://drive.google.com/thumbnail?id=${fileId}`;
+                        }
+                    }
+                    
+                    questionHTML += `
+                        <div class="question-image-container">
+                            <img class="question-image" src="${imageUrl}" alt="Question Image">
+                        </div>
+                    `;
+                }
+                
+                questionHTML += `<div class="options">`;
+                
+                answer.options.forEach(option => {
+                    let optionClass = '';
+                    
+                    if (option === answer.correctAnswer) {
+                        optionClass += ' correct';
+                    } else if (option === answer.userSelection && !answer.isCorrect) {
+                        optionClass += ' incorrect';
+                    }
+                    
+                    if (option === answer.userSelection) {
+                        optionClass += ' selected';
+                    } else {
+                        optionClass += ' unselected';
+                    }
+                    
+                    questionHTML += `<div class="option${optionClass}">`;
+                    
+                    if (option === answer.correctAnswer) {
+                        questionHTML += `<i class="fa-solid fa-check" style="color: #4CAF50;"></i> `;
+                    } else if (option === answer.userSelection && !answer.isCorrect) {
+                        questionHTML += `<i class="fa-solid fa-xmark" style="color: #F44336;"></i> `;
+                    }
+                    
+                    questionHTML += `${option}</div>`;
+                });
+                
+                questionHTML += `
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML += questionHTML;
+            });
+        }
+          
+        function resetQuiz() {
+            clearInterval(timerInterval);
+          
+            // Destroy chart if it exists
+            if (resultChart) {
+                resultChart.destroy();
+                resultChart = null;
+            }
+          
+            //Hide result page and quiz page
+            document.getElementById('result-page').style.display = 'none';
+            document.getElementById('quiz-page').style.display = 'none';
+          
+            // Reset login page
+            document.getElementById('login-page').style.display = 'block';
+            document.getElementById('login-id').value = '';
+            document.getElementById('login-password').value = '';
+          
+            //Reset all
+            localStorage.removeItem('id');
+            localStorage.removeItem('name');
+            localStorage.removeItem('class');
+            localStorage.removeItem('group');
+            localStorage.removeItem('classSubjects');
+            localStorage.removeItem('showResult');
+            localStorage.removeItem('quizStartTime');
+            localStorage.removeItem('questionType');
+            localStorage.removeItem('previousEnabled');
+            localStorage.removeItem('clearOptionEnabled');
+            
+            // Clear selected subjects display
+            document.getElementById('selected-subjects').innerHTML = '';
+            
+            // Reset all variables
+            selectedSubjects = [];
+            questions = [];
+            currentQuestionIndex = 0;
+            score = 0;
+            skippedQuestions = [];
+            totalQuestions = 0;
+            quizTimestamp = null; // Reset timestamp
+            userAnswers = []; // Reset user answers
+            
+            // Uncheck all subject checkboxes
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+
+        function loadRules() {
+            $.getJSON('https://script.google.com/macros/s/AKfycbw6dhdnh7dl7f2XGXiT2lfApLxmn4lQeB1YmXGiIXVScwIhTWht6WLex8JXxJoh-3gB/exec?action=getSubjects', function(data) {
+                let rulesList = '';
+                data.rules.forEach((rule, index) => {
+                    rulesList += `<li>${rule}</li>`;
+                });
+                document.getElementById('rules-list').innerHTML = rulesList;
+            });
+        }
+
+        // Add new function to clear the current question's selection
+        function clearQuestion() {
+            // Uncheck all options for the current question
+            document.querySelectorAll('input[name="option"]').forEach(input => {
+                input.checked = false;
+            });
+            
+            // Hide the clear button
+            document.getElementById('clear-question-btn').style.display = 'none';
+            
+            // If there's a saved answer for this question, update it to be skipped
+            if (userAnswers[currentQuestionIndex]) {
+                userAnswers[currentQuestionIndex].userSelection = null;
+                userAnswers[currentQuestionIndex].userSelectionIndex = undefined;
+                userAnswers[currentQuestionIndex].isCorrect = false;
+                userAnswers[currentQuestionIndex].skipped = true;
+                userAnswers[currentQuestionIndex].points = 0;
+            }
+        }
+
+        // Helper function to extract Google Drive file ID from various URL formats
+        function extractGoogleDriveFileId(url) {
+            // Handle different Google Drive URL formats
+            const patterns = [
+                /\/d\/([a-zA-Z0-9_-]+)/, // Format: /d/FILE_ID
+                /id=([a-zA-Z0-9_-]+)/,   // Format: id=FILE_ID
+                /\/file\/d\/([a-zA-Z0-9_-]+)/ // Format: /file/d/FILE_ID
+            ];
+            
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match && match[1]) {
+                    return match[1];
+                }
+            }
+            
+            return null;
+        }
+    </script>
+    <!-- Button Layout -->
+    <script>
+      function updateButtonLayout() {
+        const prev = document.getElementById('prev-button');
+        const skip = document.getElementById('skip-button');
+        const container = document.getElementById('button-container');
+    
+        const prevVisible = !prev.classList.contains('hidden');
+        const skipVisible = !skip.classList.contains('hidden');
+    
+        if (prevVisible && skipVisible) {
+          container.classList.remove('justify-center');
+          container.classList.add('justify-between');
+        } else {
+          container.classList.remove('justify-between');
+          container.classList.add('justify-center');
+        }
+      }
+    </script>
+    <script>
+      // Hide and show password
+      const eyeIcons = document.querySelectorAll(".show-hide");
+    
+      eyeIcons.forEach((eyeIcon) => {
+        eyeIcon.addEventListener("click", () => {
+          const pInput = eyeIcon.parentElement.querySelector("input"); //getting parent element of eye icon and selecting the password input
+          if (pInput.type === "password") {
+            eyeIcon.classList.replace("bx-hide", "bx-show");
+            return (pInput.type = "text");
+          }
+          eyeIcon.classList.replace("bx-show", "bx-hide");
+          pInput.type = "password";
+        });
+      });
+      
+      /*Disable All Element, Copy, Cut & Past Start*/
+      // shortcut keys that will be disabled
+      const disabledKeys = ["c", "C", "x", "J", "u", "I"];
+      const showAlert = e => {
+      e.preventDefault(); // prevent default behavior
+      return false; //alert("This feature is restricted!");
+      }
+    
+      // call showAlert on mouse right-click 
+      document.addEventListener("contextmenu", showAlert);
+      document.addEventListener("keydown", e => {
+    
+      // call showAlert, if the pressed key is F12 or matched to keys
+    
+        if((e.ctrlKey && disabledKeys.includes(e.key)) || e.key === "F12") {
+            showAlert(e);
+        }
+      });
+    
+      //disable all inspact element
+      document.addEventListener("contextmenu", function (e) { 
+      e.preventDefault();
+      });
+    
+      document.onkeydown = function (e) {
+        if (event.keyCode == 123) { 
+        return false;
+      }
+    
+        else if (e.ctrlKey && e.shiftKey && e.keyCode == "I".charCodeAt(0)) { return false;
+      }
+    
+        else if (e.ctrlKey && e.shiftKey && e.keyCode == "C".charCodeAt(0)) { return false;
+      }
+    
+        else if (e.ctrlKey && e.shiftKey && e.keyCode == "J".charCodeAt(0)) { return false;
+      }
+    
+        else if (e.ctrlKey && e.keyCode == "U".charCodeAt(0)) { 
+        return false;
+      }
+    
+      };
+      /*Disable All Element, Copy, Cut & Past End*/
+    </script>
+  </body> 
+</html>
